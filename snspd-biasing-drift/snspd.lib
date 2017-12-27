@@ -1,0 +1,226 @@
+** SNSPDLibrary **
+
+* This library contains subckts and
+* parameters needed to model an
+* snspd. Specifically there are two
+* nanowire models that simulate the
+* superconducting nanowire's physical
+* response to a photon.
+*
+* The nanowireBCF (Basic Curve Fit) 
+* model uses a group of switches 
+* parallel to a variable resitor 
+* to trace the i-v and pulse
+* curves of a nanowire.
+*
+* The nanowireDynTherm (Dynamic Thermal)
+* model uses sets of ancillary circuits to
+* calculate and simulate the behavior
+* of a nanowire. Each subcircuit is
+* embedded into an snspd subcircuit that
+* uses current pulses to simulate the
+* arivals of a photons.
+
+*************************************
+* nanowireBCF                       *
+*   basic curve-fitting-based model *
+*   of a nanowire                   *
+* gate: 1 uA in 2 ps pulse=photon   *
+*   only connect to current source  *
+* drain: one terminal of channel    *
+* source: other terminal of channel *
+*************************************
+
+.subckt nanowireBCF gate gatereturn drain source
++Lind=100n Isw={Jc*width*thickness*C}
++width=100n thickness=4n sheetRes=400
++Tc=10.5 Tsub=2 Jc=50G C=1
+  *Jc at T=Tsub in units of amps/m2
+  *sheetRes has units of ohms/sq
+  *Tc is critical temp and has units of K
+  *Tsub is substrate temp and has units of K
+  *C is constrition factor
+
+*Dimensions
+.PARAM length={width*Lind/inductivity}
+.PARAM squares={length/width}
+
+*Thermal Parameters
+.PARAM kappa = 0.108
+  * thermal conductivity
+  * in W/m K
+.PARAM heatCapacity = 4400
+  * heat capacity per unit
+  * volume in J/m^3 K
+.PARAM hc = 50k
+  * hc is the thermal conductivity
+  * of the surface, units of W/m^2 K
+
+*Electrical/Superconducting Parameters
+.PARAM inductivity = {1.38p*sheetRes/Tc}
+  * units of H/square
+.PARAM  minSquares = 1
+  * # of squares for min resistance
+.PARAM maxSquares = 4
+  * units of ohms/square
+.PARAM psi={sheetRes*(Jc*thickness)**2
++/(hc*(Tc-Tsub))}
+  * psi is the Stekly parameter.
+.PARAM f={sqrt(2/psi)*.76}
+  * quantify hysteresis of Ihs vs Isw
+.PARAM Ihs={f*Isw}
+  * hotspot current level
+
+*Unitless Parameters
+.PARAM gain={10}
+  * factor photon signal gets multiplied by
+.PARAM epsilon = {0.05}
+  * provides margins for switching
+
+** MAIN CIRCUIT **
+
+* channel Inductor
+L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
++asin(0.6*x/{Isw}))-1))*x Rser = 1e-100
+
+* photodetection-event current sensor
+V1 N1 N2 0
+
+* photodetection current gain
+B2 N2 N1 I=IF(I(V1)>0,10*I(R3),-10*I(R3))
+
+* hotspot plateau current source
+B1 N2 source I=IF(v(n2,source)>0,Ihs,-Ihs)
+
+* hotspot limiting resistor
+R2 N2 source {maxSquares*sheetRes}
+
+* gate input resistor
+R3 gate gatereturn 1
+
+* current sense switch, detects photon arrival
+W1 N2 N3 V1 currentSwitch OFF
+W2 N3 N4 V1 negCurrentSwitch ON
+  * starts in off state (short)
+.PARAM hiIthresh = {Isw}
+.PARAM loIthresh = {Isw*(f+epsilon)}
+.model currentSwitch CSW(Ron=1e9 Roff=.01 
+ +It={(hiIthresh+loIthresh)/2} 
+ +Ih={(hiIthresh-loIthresh)/2})
+.model negCurrentSwitch CSW(Ron=.01 Roff=1e9 
+ +It={-(hiIthresh+loIthresh)/2} 
+ +Ih={(hiIthresh-loIthresh)/2})
+
+* voltage sense, prevents instant reset
+S1 N4 N5 N2 source voltageSwitch OFF
+S2 N5 source N2 source negVoltageSwitch ON
+
+.PARAM Vthresh={minSquares*sheetRes*Ihs}
+.model voltageSwitch SW(Ron=1e9 Roff=.01 
++Vt={Vthresh} Vh=0)
+.model negVoltageSwitch SW(Ron=.01 Roff=1e9 
++Vt={-Vthresh} Vh=0)
+.ends nanowireBCF
+
+*************************************
+* nanowireDynamic                   *
+*   full dynamic model of nanowire  *
+* gate: 1 uA in 2 ps pulse=photon   *
+*   only connect to current source  *
+* drain: one terminal of channel    *
+* source: other terminal of channel *
+*************************************
+
+.subckt nanowireDynamic gate gatereturn drain
++ source params: Lind=100n Isw={Jc*
++width*thickness*C} width=100n thickness=4n
++ sheetRes=400 Tc=10.5 Tsub=2 Jc=50G C=1
+  *Jc at T=Tsub in units of amps/m2
+  *sheetRes has units of ohms/sq
+  *Tc is critical temp and has units of K
+  *Tsub is substrate temp and has units of K
+  *C is constrition factor
+
+*Dimensions
+.PARAM length={width*Lind/inductivity}
+.PARAM squares={length/width}
+
+*Thermal Parameters
+.PARAM kappa = 0.108
+  * thermal conductivity W/m K
+.PARAM heatCapacity = 4400
+  * heat capacity J/m^3 K
+.PARAM hc = 50k
+  * thermal conductivity of surface W/m^2 K
+
+*Electrical/Superconducting Parameters
+.PARAM inductivity = {1.38p*sheetRes/Tc}
+  * H/square
+.PARAM  minSquares = {1/sheetRes}
+  * # squares for minimum resistance
+.PARAM Rnorm = {sheetRes*squares}
+  * units of ohms/square
+.PARAM psi={sheetRes*(Jc*thickness)**2/
++(hc*(Tc-Tsub))}
+  * psi is the Stekly parameter.
+.PARAM vo={sqrt(hc*kappa/thickness)/
++heatCapacity}
+  * vo is characteristic velocity
+
+.PARAM Ihs={sqrt(2/psi)*Isw}
+.PARAM Vthresh={minSquares*sheetRes*Ihs}
+.PARAM rho={sheetRes*thickness}
+
+*Unitless Parameters
+.PARAM gain={10}
+  * factor photon signal gets multiplied by
+.PARAM delta={0.005}
+  * a small offset value for avoiding
+  * singularity in hotspot velocity
+
+** MAIN CIRCUIT **
+
+*channel inductor
+L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
++asin(0.6*x/{Isw}))-1))*x Rser = 1e-100
+
+* hotspot resistor
+B1 N1 source V=(v(N3)+abs(v(N3)))/2*i(L1)
+  * v(N3) is resistance of hotspot
+
+* hotspot limiter
+R1 N1 source {Rnorm}
+  * prevents channel resistance from
+  * increasing without bound
+
+*photon arrival sense resistor
+R3 gate gatereturn 1e-100
+
+** S/C SENSE SUBCIRCUIT **
+
+**Superconducting to Resistive Transition
+
+*dependent source used to store state
+B2 N2 0 V=if((abs(i(L1))>Isw-gain*
++abs(i(R3)))|(abs(v(N1)-v(source))>{Vthresh}),1,0)
+R2 N2 0 1
+  * v(N2) is 0 if wire s/c, 1 if not
+
+** HOTSPOT GROWTH INTEGRATOR SUBCIRCUIT **
+
+*dependent current source that represents
+*hotspot S-N boundary velocity
+B3 0 N3 I=if(v(N2),(psi*(i(L1)/Isw)**2-2)
++/((sqrt(((psi*(i(L1)/Isw)**2-1)+abs(psi*
++(i(L1)/Isw)**2-1))/2)+delta)),0)
+
+*capacitor that integrates hotspot velocity
+C1 N3 0 {(width)/(2*sheetres*vo)}
+  * hotspot resistance is v(N3)
+
+*switch that shorts capacitor to ground when
+*superconductivity is restored
+S1 N3 0 N2 0 Srestore OFF
+.model Srestore SW(Vt={0.5V} Roff=1m Ron=10G)
+
+.ends nanowireDynamic
