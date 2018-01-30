@@ -7,9 +7,9 @@
 * superconducting nanowire's physical
 * response to a photon.
 *
-* The nanowireBCF (Basic Curve Fit) 
-* model uses a group of switches 
-* parallel to a variable resitor 
+* The nanowireBCF (Basic Curve Fit)
+* model uses a group of switches
+* parallel to a variable resitor
 * to trace the i-v and pulse
 * curves of a nanowire.
 *
@@ -59,14 +59,13 @@
 *Electrical/Superconducting Parameters
 .PARAM inductivity = {1.38p*sheetRes/Tc}
   * units of H/square
-.PARAM  minSquares = 1
+.PARAM  minSquares = 2
   * # of squares for min resistance
-.PARAM maxSquares = 4
+.PARAM maxSquares = 10
   * units of ohms/square
-.PARAM psi={sheetRes*(Jc*thickness)**2
-+/(hc*(Tc-Tsub))}
+.PARAM psi={sheetRes*(Jc*thickness)**2 /(hc*(Tc-Tsub))}
   * psi is the Stekly parameter.
-.PARAM f={sqrt(2/psi)*.76}
+.PARAM f={sqrt(2/psi)}
   * quantify hysteresis of Ihs vs Isw
 .PARAM Ihs={f*Isw}
   * hotspot current level
@@ -74,20 +73,19 @@
 *Unitless Parameters
 .PARAM gain={10}
   * factor photon signal gets multiplied by
-.PARAM epsilon = {0.05}
+.PARAM epsilon = {0.01}
   * provides margins for switching
 
 ** MAIN CIRCUIT **
 
 * channel Inductor
-L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
-+asin(0.6*x/{Isw}))-1))*x Rser = 1e-100
+L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*asin(0.6*x/{Isw}))-1))*x Rser = 1e-10
 
 * photodetection-event current sensor
 V1 N1 N2 0
 
-* photodetection current gain
-B2 N2 N1 I=IF(I(V1)>0,10*I(R3),-10*I(R3))
+* photodetection event current
+B2 N2 N1 I=IF(I(V1)>0,gain*I(R3),-gain*I(R3))
 
 * hotspot plateau current source
 B1 N2 source I=IF(v(n2,source)>0,Ihs,-Ihs)
@@ -99,27 +97,26 @@ R2 N2 source {maxSquares*sheetRes}
 R3 gate gatereturn 1
 
 * current sense switch, detects photon arrival
+* actuates in the i>0 range
 W1 N2 N3 V1 currentSwitch OFF
+* actuates in the i<0 range
 W2 N3 N4 V1 negCurrentSwitch ON
-  * starts in off state (short)
 .PARAM hiIthresh = {Isw}
-.PARAM loIthresh = {Isw*(f+epsilon)}
-.model currentSwitch CSW(Ron=1e9 Roff=.01 
- +It={(hiIthresh+loIthresh)/2} 
- +Ih={(hiIthresh-loIthresh)/2})
-.model negCurrentSwitch CSW(Ron=.01 Roff=1e9 
- +It={-(hiIthresh+loIthresh)/2} 
- +Ih={(hiIthresh-loIthresh)/2})
+.PARAM loIthresh = {Isw *(f+epsilon)}
+* model goes normal above hiIthresh and resets below loIThresh
+.model currentSwitch CSW(Ron=1e9 Roff=.01 It={(hiIthresh+loIthresh)/2} Ih={(hiIthresh-loIthresh)/2})
+* model goes normal below -hiIthresh and resets above -loIthresh
+.model negCurrentSwitch CSW(Ron=.01 Roff=1e9 It={-(hiIthresh+loIthresh)/2} Ih={(hiIthresh-loIthresh)/2})
 
-* voltage sense, prevents instant reset
+* voltage sense switches
+* actuates in the v>0 range
 S1 N4 N5 N2 source voltageSwitch OFF
+* actuates in the v<0 range
 S2 N5 source N2 source negVoltageSwitch ON
 
 .PARAM Vthresh={minSquares*sheetRes*Ihs}
-.model voltageSwitch SW(Ron=1e9 Roff=.01 
-+Vt={Vthresh} Vh=0)
-.model negVoltageSwitch SW(Ron=.01 Roff=1e9 
-+Vt={-Vthresh} Vh=0)
+.model voltageSwitch SW(Ron=1e9 Roff=.01 Vt={Vthresh} Vh=0)
+.model negVoltageSwitch SW(Ron=.01 Roff=1e9 Vt={-Vthresh} Vh=0)
 .ends nanowireBCF
 
 *************************************
