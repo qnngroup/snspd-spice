@@ -181,8 +181,8 @@ S2 N5 source N2 source negVoltageSwitch ON
 L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
 +asin(0.6*x/{Isw}))-1))*x Rser = 1e-100
 
-* hotspot resistor
-B1 N1 source V=(v(N3)+abs(v(N3)))/2*i(L1)
+* hotspot resistor (changed i(L1) to i(B1) on 2020-7-9)
+B1 N1 source V=(v(N3)+abs(v(N3)))/2*i(B1)
   * v(N3) is resistance of hotspot
 
 * hotspot limiter
