@@ -1,3 +1,3 @@
 - .: SNSPD
   - snspd.lib: snspd.lib
-  - snspdWithPhotonPort.asy: snspd.asy
+  - snspdWithPhotonPort.asy: snspdWithPhotonPort.asy
