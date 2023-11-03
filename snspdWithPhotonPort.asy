@@ -1,5 +1,5 @@
 Version 4
-SymbolType CELL
+SymbolType BLOCK
 LINE Normal 0 -48 0 -16
 LINE Normal 0 16 0 48
 LINE Normal 16 -16 0 -16
@@ -30,10 +30,11 @@ LINE Normal -28 0 -31 -5
 LINE Normal -24 0 -28 0
 LINE Normal -27 -3 -24 0
 LINE Normal -27 3 -24 0
-TEXT 24 0 Left 2 S
+SYMATTR Value snspd
 SYMATTR Prefix X
 SYMATTR SpiceModel nanowireDynamic
 SYMATTR Description snspd with gate
+SYMATTR SpiceLine Lind=100n Isw=10u thickness=4n sheetRes=400 Tc=10.5 Tsub=4 Jc=46G C=1
 SYMATTR ModelFile snspd.lib
 PIN 0 -48 NONE 8
 PINATTR SpiceOrder 3
