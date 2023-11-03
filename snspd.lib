@@ -76,10 +76,19 @@
 .PARAM epsilon = {0.01}
   * provides margins for switching
 
+* Maximum impedance of inductor, helps with solver convergence
+.PARAM Ind_Z_max = 1e6
+* ohms set to a few orders of magnitude above the largest expected
+* impedance as calculated by Lind_x*2*pi*f_max where f_max = 0.31/t_rise_min
+* is the maximum frequency in Hz based on the fastest dynamics of the
+* circuit in seconds
+* For normal nTron inductors (e.g. 200 squares of 20pH/sq), a rise time of
+* 10ps gives about 1kohm max impedance, so 1e6 is acceptable
+
 ** MAIN CIRCUIT **
 
 * channel Inductor
-L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*asin(0.6*x/{Isw}))-1))*x Rser = 1e-10
+L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*asin(0.6*x/{Isw}))-1))*x Rser = 1e-10 Rpar = {Ind_Z_max}
 
 * photodetection-event current sensor
 V1 N1 N2 0
@@ -175,14 +184,23 @@ S2 N5 source N2 source negVoltageSwitch ON
   * a small offset value for avoiding
   * singularity in hotspot velocity
 
+* Maximum impedance of inductor, helps with solver convergence
+.PARAM Ind_Z_max = 1e6
+* ohms set to a few orders of magnitude above the largest expected
+* impedance as calculated by Lind_x*2*pi*f_max where f_max = 0.31/t_rise_min
+* is the maximum frequency in Hz based on the fastest dynamics of the
+* circuit in seconds
+* For normal nTron inductors (e.g. 200 squares of 20pH/sq), a rise time of
+* 10ps gives about 1kohm max impedance, so 1e6 is acceptable
+
 ** MAIN CIRCUIT **
 
 *channel inductor
 L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
-+asin(0.6*x/{Isw}))-1))*x Rser = 1e-100
++asin(0.6*x/{Isw}))-1))*x Rser = 1e-100 Rpar = {Ind_Z_max}
 
 * hotspot resistor (changed i(L1) to i(B1) on 2020-7-9)
-B1 N1 source V=(v(N3)+abs(v(N3)))/2*i(B1)
+B1 N1 source V=IF(v(N3)>0, v(N3)*i(B1), 0)
   * v(N3) is resistance of hotspot
 
 * hotspot limiter
@@ -198,26 +216,15 @@ R3 gate gatereturn 1e-100
 **Superconducting to Resistive Transition
 
 *dependent source used to store state
-B2 N2 0 V=if((abs(i(L1))>Isw-gain*
-+abs(i(R3)))|(abs(v(N1)-v(source))>{Vthresh}),1,0)
-R2 N2 0 1
-  * v(N2) is 0 if wire s/c, 1 if not
+B2 N2 0 V=if((abs(i(L1))>Isw-gain*abs(i(R3)))|(abs(v(N1)-v(source))>{Vthresh}),1,0)
+* v(N2) is 0 if wire s/c, 1 if not
 
 ** HOTSPOT GROWTH INTEGRATOR SUBCIRCUIT **
 
-*dependent current source that represents
-*hotspot S-N boundary velocity
-B3 0 N3 I=if(v(N2),(psi*(i(L1)/Isw)**2-2)
+B3 N3 0 V=sdt(if(v(N2),(2*sheetres*vo)/(width)*
++((psi*(i(L1)/Isw)**2-2)
 +/((sqrt(((psi*(i(L1)/Isw)**2-1)+abs(psi*
-+(i(L1)/Isw)**2-1))/2)+delta)),0)
-
-*capacitor that integrates hotspot velocity
-C1 N3 0 {(width)/(2*sheetres*vo)}
-  * hotspot resistance is v(N3)
-
-*switch that shorts capacitor to ground when
-*superconductivity is restored
-S1 N3 0 N2 0 Srestore OFF
-.model Srestore SW(Vt={0.5V} Roff=1m Ron=10G)
++(i(L1)/Isw)**2-1))/2)+delta))),0)
++, 0, V(N2)<0.5)
 
 .ends nanowireDynamic
