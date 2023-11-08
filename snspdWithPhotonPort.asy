@@ -32,7 +32,6 @@ LINE Normal -27 -3 -24 0
 LINE Normal -27 3 -24 0
 WINDOW 39 -10 32 Center 2
 WINDOW 0 16 -29 Left 2
-SYMATTR Value snspd
 SYMATTR Prefix X
 SYMATTR SpiceModel nanowireDynamic
 SYMATTR Description snspd with gate
