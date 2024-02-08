@@ -180,9 +180,14 @@ S2 N5 source N2 source negVoltageSwitch ON
 *Unitless Parameters
 .PARAM gain={10}
   * factor photon signal gets multiplied by
-.PARAM delta={0.005}
+.PARAM delta={0.01}
   * a small offset value for avoiding
   * singularity in hotspot velocity
+  * If delta is made too large, cooling will be suppressed and the
+  * nanowire will be more likely to latch (in simulation).
+  * It's important to note that delta is only for convenience and
+  * assuring convergence of the model, and does not correspond to any
+  * physical parameter or process in the device
 
 * Maximum impedance of inductor, helps with solver convergence
 .PARAM Ind_Z_max = 1e6
@@ -197,7 +202,7 @@ S2 N5 source N2 source negVoltageSwitch ON
 
 *channel inductor
 L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
-+asin(0.6*x/{Isw}))-1))*x Rser = 1e-100 Rpar = {Ind_Z_max}
++asin(0.6*x/{Isw}))-1))*x Rser = 1e-12 Rpar = {Ind_Z_max}
 
 * hotspot resistor (changed i(L1) to i(B1) on 2020-7-9)
 B1 N1 source V=IF(v(N3)>0, v(N3)*i(B1), 0)
