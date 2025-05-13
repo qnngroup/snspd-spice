@@ -208,11 +208,6 @@ L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
 B1 N1 source V=IF(v(N3)>0, v(N3)*i(B1), 0)
   * v(N3) is resistance of hotspot
 
-* hotspot limiter
-R1 N1 source {Rnorm}
-  * prevents channel resistance from
-  * increasing without bound
-
 *photon arrival sense resistor
 R3 gate gatereturn 1e-100
 
@@ -226,7 +221,7 @@ B2 N2 0 V=if((abs(i(L1))>Isw-gain*abs(i(R3)))|(abs(v(N1)-v(source))>{Vthresh}),1
 
 ** HOTSPOT GROWTH INTEGRATOR SUBCIRCUIT **
 
-B3 N3 0 V=sdt(if(v(N2),(2*sheetres*vo)/(width)*
+B3 N3 0 V=sdt(if(v(N2) & v(N3)<{Rnorm},(2*sheetres*vo)/(width)*
 +((psi*(i(L1)/Isw)**2-2)
 +/((sqrt(((psi*(i(L1)/Isw)**2-1)+abs(psi*
 +(i(L1)/Isw)**2-1))/2)+delta))),0)
