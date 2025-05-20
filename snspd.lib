@@ -138,8 +138,7 @@ S2 N5 source N2 source negVoltageSwitch ON
 *************************************
 
 .subckt nanowireDynamic gate gatereturn drain
-+ source params: Lind=100n Isw={Jc*
-+width*thickness*C} width=100n thickness=4n
++ source params: Lind=100n width=100n thickness=4n
 + sheetRes=400 Tc=10.5 Tsub=2 Jc=50G C=1
   *Jc at T=Tsub in units of amps/m2
   *sheetRes has units of ohms/sq
@@ -162,8 +161,6 @@ S2 N5 source N2 source negVoltageSwitch ON
 *Electrical/Superconducting Parameters
 .PARAM inductivity = {1.38p*sheetRes/Tc}
   * H/square
-.PARAM  minSquares = {1/sheetRes}
-  * # squares for minimum resistance
 .PARAM Rnorm = {sheetRes*squares}
   * units of ohms/square
 .PARAM psi={sheetRes*(Jc*thickness)**2/
@@ -173,8 +170,8 @@ S2 N5 source N2 source negVoltageSwitch ON
 +heatCapacity}
   * vo is characteristic velocity
 
+.PARAM Isw={Jc*width*thickness*C}
 .PARAM Ihs={sqrt(2/psi)*Isw}
-.PARAM Vthresh={minSquares*sheetRes*Ihs}
 .PARAM rho={sheetRes*thickness}
 
 *Unitless Parameters
@@ -201,30 +198,39 @@ S2 N5 source N2 source negVoltageSwitch ON
 ** MAIN CIRCUIT **
 
 *channel inductor
-L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*
+Lc drain N_center Flux=({Lind}/(2.0*cos(0.67*
 +asin(0.6*x/{Isw}))-1))*x Rser = 1e-12 Rpar = {Ind_Z_max}
 
 * hotspot resistor (changed i(L1) to i(B1) on 2020-7-9)
-B1 N1 source V=IF(v(N3)>0, v(N3)*i(B1), 0)
-  * v(N3) is resistance of hotspot
+B_hs N_center source V=IF(v(N_res)>0, v(N_res)*i(B_hs), 0)
+  * v(N_res) is resistance of hotspot
 
 *photon arrival sense resistor
-R3 gate gatereturn 1e-100
+R_gate gate gatereturn 1
 
 ** S/C SENSE SUBCIRCUIT **
 
 **Superconducting to Resistive Transition
 
 *dependent source used to store state
-B2 N2 0 V=if((abs(i(L1))>Isw-gain*abs(i(R3)))|(abs(v(N1)-v(source))>{Vthresh}),1,0)
-* v(N2) is 0 if wire s/c, 1 if not
+R_state N_state 0 1k
+R_sc_n N_sc_n 0 1k
+.machine 1p
+.state sc 0
+.state norm 1
+.rule sc norm abs(I(Lc)) - {Isw} + {gain}*abs(i(R_gate)) > 0
+.rule norm sc abs(I(Lc)) - {Ihs} < 0
+.output (N_state) state
+.output (N_sc_n) abs(I(Lc)) - {Isw} - {gain}*abs(i(R_gate)) > 0
+.endmachine
+* v(N_state) is 0 if wire s/c, 1 if not
 
 ** HOTSPOT GROWTH INTEGRATOR SUBCIRCUIT **
 
-B3 N3 0 V=sdt(if(v(N2) & v(N3)<{Rnorm},(2*sheetres*vo)/(width)*
-+((psi*(i(L1)/Isw)**2-2)
-+/((sqrt(((psi*(i(L1)/Isw)**2-1)+abs(psi*
-+(i(L1)/Isw)**2-1))/2)+delta))),0)
-+, 0, V(N2)<0.5)
+B_hs_int N_res 0 V=sdt(if(v(N_state) & v(N_res)<{Rnorm},({2*sheetres*vo})/({width})*
++(({psi}*(i(Lc)/{Isw})**2-2)
++/((sqrt((({psi}*(i(Lc)/{Isw})**2-1)+abs({psi}*
++(i(Lc)/{Isw})**2-1))/2)+{delta}))),0)
++, 0, V(N_state)<0.5)
 
 .ends nanowireDynamic
