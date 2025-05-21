@@ -1,3 +1,4 @@
 - .: SNSPD
   - snspd.lib: snspd.lib
   - snspdWithPhotonPort.asy: snspdWithPhotonPort.asy
+  - nanowire.asy: nanowire.asy
