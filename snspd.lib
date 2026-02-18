@@ -88,7 +88,7 @@
 ** MAIN CIRCUIT **
 
 * channel Inductor
-L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*asin(0.6*x/{Isw}))-1))*x Rser = 1e-10 Rpar = {Ind_Z_max}
+L1 drain N1 Flux=({Lind}/(2.0*cos(0.67*asin(C*x/{Isw}))-1))*x Rser = 1e-10 Rpar = {Ind_Z_max}
 
 * photodetection-event current sensor
 V1 N1 N2 0
@@ -203,7 +203,7 @@ S2 N5 source N2 source negVoltageSwitch ON
 
 *channel inductor
 Lc drain N_center Flux=({Lind}/(2.0*cos(0.67*
-+asin(0.6*x/{Isw}))-1))*x Rser = 1e-12 Rpar = {Ind_Z_max}
++asin(C*x/{Isw}))-1))*x Rser = 1e-12 Rpar = {Ind_Z_max}
 
 * hotspot resistor (changed i(L1) to i(B1) on 2020-7-9)
 B_hs N_center source V=IF(v(N_res)>0, v(N_res)*i(B_hs), 0)
@@ -328,7 +328,7 @@ B_hs_int N_res 0 V=sdt(if(v(N_state) & v(N_res)<{Rnorm},({2*sheetres*vo})/({widt
 
 * channel inductor
 L_k drain n_hs Flux=({Lind}/(2.0*cos(0.67*
-+asin(0.6*x/v(I_sw)))-1))*x Rser = 1e-24 Rpar = {Ind_Z_max}
++asin(C*x/v(I_sw)))-1))*x Rser = 1e-24 Rpar = {Ind_Z_max}
 
 * hotspot resistance, where v(r_hs) is resistance of hotspot
 B_Rhs n_hs source V=IF(v(r_hs)>0, v(r_hs)*i(L_k), 0)
