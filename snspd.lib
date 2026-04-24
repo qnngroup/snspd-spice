@@ -57,7 +57,7 @@
   * of the surface, units of W/m^2 K
 
 *Electrical/Superconducting Parameters
-.PARAM inductivity = {1.38p*sheetRes/Tc}
+.PARAM inductivity = {1.38p*sheetRes/Tc/tanh(1.74*sqrt(Tc/Tsub-1))}
   * units of H/square
 .PARAM  minSquares = 2
   * # of squares for min resistance
@@ -162,7 +162,7 @@ S2 N5 source N2 source negVoltageSwitch ON
 .PARAM Jc={C*Jd_0K*(1-(Tsub/Tc)**2)**(3/2)}
 
 *Electrical/Superconducting Parameters
-.PARAM inductivity = {1.38p*sheetRes/Tc}
+.PARAM inductivity = {1.38p*sheetRes/Tc/tanh(1.74*sqrt(Tc/Tsub-1))}
   * H/square
 .PARAM Rnorm = {sheetRes*squares}
   * units of ohms/square
@@ -285,7 +285,7 @@ B_hs_int N_res 0 V=sdt(if(v(N_state) & v(N_res)<{Rnorm},({2*sheetres*vo})/({widt
   * alpha, gamma: Debye phonon / Einstein electron heat capacity parameters
 
 *--- Electrical/Superconducting Parameters ---
-.PARAM inductivity = {1.38p*sheetRes/Tc}
+.PARAM inductivity = {1.38p*sheetRes/Tc/tanh(1.74*sqrt(Tc/Tsub-1))}
   * kinetic inductance per square (H/sq)
 .PARAM  minSquares = {1/sheetRes}
   * # squares for minimum resistance
