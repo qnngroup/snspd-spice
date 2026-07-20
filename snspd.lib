@@ -57,7 +57,9 @@
   * of the surface, units of W/m^2 K
 
 *Electrical/Superconducting Parameters
-.PARAM inductivity = {1.38p*sheetRes/Tc/tanh(1.74*sqrt(Tc/Tsub-1))}
+.PARAM orderParam0 = {1.76*Tc}
+.PARAM orderParamT = {orderParam0*tanh(1.74*sqrt(Tc/Tsub-1))}
+.PARAM inductivity = {1.38p*sheetRes/Tc*(orderParam0/(orderParamT*tanh(orderParamT/(2*Tsub))))}
   * units of H/square
 .PARAM  minSquares = 2
   * # of squares for min resistance
@@ -162,7 +164,9 @@ S2 N5 source N2 source negVoltageSwitch ON
 .PARAM Jc={C*Jd_0K*(1-(Tsub/Tc)**2)**(3/2)}
 
 *Electrical/Superconducting Parameters
-.PARAM inductivity = {1.38p*sheetRes/Tc/tanh(1.74*sqrt(Tc/Tsub-1))}
+.PARAM orderParam0 = {1.76*Tc}
+.PARAM orderParamT = {orderParam0*tanh(1.74*sqrt(Tc/Tsub-1))}
+.PARAM inductivity = {1.38p*sheetRes/Tc*(orderParam0/(orderParamT*tanh(orderParamT/(2*Tsub))))}
   * H/square
 .PARAM Rnorm = {sheetRes*squares}
   * units of ohms/square
