@@ -35,7 +35,7 @@ WINDOW 0 16 -29 Left 2
 SYMATTR Prefix X
 SYMATTR SpiceModel nanowireDynamic
 SYMATTR Description snspd with gate
-SYMATTR SpiceLine length=1u width=100n thickness=4n sheetRes=400 Tc=10.5 Tsub=4 Jc=46G C=1
+SYMATTR SpiceLine length=1u width=100n thickness=4n sheetRes=400 Tc=10.5 Tsub=4 Jc=46G C=1 kappa=0.108 Cheat=4.4k hc=50k
 SYMATTR ModelFile snspd.lib
 PIN -64 -48 NONE 8
 PINATTR PinName gate-in

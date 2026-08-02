@@ -32,29 +32,19 @@
 *************************************
 
 .subckt nanowireBCF gate gatereturn drain source
-+Lind=100n Isw={Jc*width*thickness*C}
-+width=100n thickness=4n sheetRes=400
-+Tc=10.5 Tsub=2 Jc=50G C=1
-  *Jc at T=Tsub in units of amps/m2
++ params: length=1u width=100n thickness=4n
++ sheetRes=400 Tc=10.5 Tsub=2 Jd_0K=50G C=1
++ hc=50k
+  *Jd_0K at Tsub=0K has units of amps/m2
   *sheetRes has units of ohms/sq
   *Tc is critical temp and has units of K
   *Tsub is substrate temp and has units of K
   *C is constrition factor
+  *hc is thermal conductivity of surface W/m^2 K
 
 *Dimensions
-.PARAM length={width*Lind/inductivity}
+.PARAM Lind={inductivity*squares}
 .PARAM squares={length/width}
-
-*Thermal Parameters
-.PARAM kappa = 0.108
-  * thermal conductivity
-  * in W/m K
-.PARAM heatCapacity = 4400
-  * heat capacity per unit
-  * volume in J/m^3 K
-.PARAM hc = 50k
-  * hc is the thermal conductivity
-  * of the surface, units of W/m^2 K
 
 *Electrical/Superconducting Parameters
 .PARAM orderParam0 = {1.76*Tc}
@@ -139,26 +129,22 @@ S2 N5 source N2 source negVoltageSwitch ON
 * source: other terminal of channel *
 *************************************
 
-.subckt nanowireDynamic gate gatereturn drain
-+ source params: length=1u width=100n thickness=4n
+.subckt nanowireDynamic gate gatereturn drain source
++ params: length=1u width=100n thickness=4n
 + sheetRes=400 Tc=10.5 Tsub=2 Jd_0K=50G C=1
++ kappa=0.108 Cheat=4400 hc=50k
   *Jd_0K at Tsub=0K has units of amps/m2
   *sheetRes has units of ohms/sq
   *Tc is critical temp and has units of K
   *Tsub is substrate temp and has units of K
   *C is constrition factor
+  *kappa is thermal conductivity W/m K
+  *Cheat is heat capacity J/m^3 K
+  *hc is thermal conductivity of surface W/m^2 K
 
 *Dimensions
 .PARAM Lind={inductivity*length/width}
 .PARAM squares={length/width}
-
-*Thermal Parameters
-.PARAM kappa = 0.108
-  * thermal conductivity W/m K
-.PARAM heatCapacity = 4400
-  * heat capacity J/m^3 K
-.PARAM hc = 50k
-  * thermal conductivity of surface W/m^2 K
 
 *add temperature dependence for Jc
 .PARAM Jc={C*Jd_0K*(1-(Tsub/Tc)**2)**(3/2)}
@@ -174,11 +160,10 @@ S2 N5 source N2 source negVoltageSwitch ON
 +(hc*(Tc-Tsub))}
   * psi is the Stekly parameter.
 .PARAM vo={sqrt(hc*kappa/thickness)/
-+heatCapacity}
++Cheat}
   * vo is characteristic velocity
 
 .PARAM Isw={Jc*width*thickness}
-*.PARAM Ihs={sqrt(2/max(psi,2))*Isw}
 .PARAM Ihs={sqrt(2/psi)*Isw}
 .PARAM rho={sheetRes*thickness}
 
@@ -229,7 +214,7 @@ R_sc_n N_sc_n 0 1k
 .rule sc norm abs(I(Lc)) - {Isw} + {gain}*abs(i(R_gate)) > 0
 .rule norm sc abs(I(Lc)) - {Ihs} < 0
 .output (N_state) state
-.output (N_sc_n) abs(I(Lc)) - {Isw} - {gain}*abs(i(R_gate)) > 0
+.output (N_sc_n) abs(I(Lc)) - {Isw} + {gain}*abs(i(R_gate)) > 0
 .endmachine
 * v(N_state) is 0 if wire s/c, 1 if not
 
@@ -270,7 +255,7 @@ B_hs_int N_res 0 V=sdt(if(v(N_state) & v(N_res)<{Rnorm},({2*sheetres*vo})/({widt
 *--- Thermal Parameters ---
 .PARAM kappa = 0.108
   * thermal conductivity (W/m K)
-.PARAM heatCapacity = 4400
+.PARAM Cheat = 4400
   * volumatric heat capacity (J/m^3 K)
 .PARAM hc = 50k
   * thermal conductivity (W/m^2 K)
@@ -298,7 +283,7 @@ B_hs_int N_res 0 V=sdt(if(v(N_state) & v(N_res)<{Rnorm},({2*sheetres*vo})/({widt
 .PARAM Ic_0K = {Jc_0K*width*thickness*C}
   * critical current at T = 0 (A)
 .PARAM vo ={sqrt(hc*kappa/thickness)/
-+heatCapacity}
++Cheat}
   * characteristic velocity
 .PARAM rho ={sheetRes*thickness}
   * resistivity (ohm m)

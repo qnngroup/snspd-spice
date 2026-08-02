@@ -10,7 +10,7 @@ LINE Normal 16 96 16 64
 WINDOW 0 24 0 Left 2
 WINDOW 3 24 96 Left 2
 SYMATTR SpiceModel nanowireDynamic
-SYMATTR SpiceLine length=1u width=100n thickness=4n sheetRes=400 Tc=10.5 Tsub=4 Jc=46G C=1
+SYMATTR SpiceLine length=1u width=100n thickness=4n sheetRes=400 Tc=10.5 Tsub=4 Jc=46G C=1 kappa=0.108 Cheat=4.4k hc=50k
 SYMATTR ModelFile snspd.lib
 SYMATTR Prefix X
 SYMATTR Description Nanowire using dynamic model
